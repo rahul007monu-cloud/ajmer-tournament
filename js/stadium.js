@@ -41,7 +41,8 @@ try {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x0b2a24, 0.0026);
 
-  const camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.1, 4000);
+  // near plane at 1 (not 0.1) → far better depth precision, kills z-fighting
+  const camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 1, 5000);
   camera.position.set(0, 95, 200);
 
   /* ---------------- Sky dome (gradient dusk/night) ---------------- */
@@ -82,13 +83,15 @@ try {
     new THREE.CircleGeometry(FIELD_R, 120),
     new THREE.MeshStandardMaterial({ map: makeFieldTexture(), roughness: 1, metalness: 0 })
   );
-  field.rotation.x = -Math.PI / 2; field.receiveShadow = true; scene.add(field);
+  field.rotation.x = -Math.PI / 2; field.position.y = 0.05; scene.add(field);
 
+  // ground skirt: OPEN-ENDED (no top cap) and set well BELOW the field so
+  // nothing is coplanar with the grass → no z-fighting "chakri"
   const skirt = new THREE.Mesh(
-    new THREE.CylinderGeometry(FIELD_R + 2, FIELD_R + 12, 10, 80),
-    new THREE.MeshStandardMaterial({ color: 0x0d3020, roughness: 1 })
+    new THREE.CylinderGeometry(FIELD_R + 2, FIELD_R + 12, 12, 80, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0x0d3020, roughness: 1, side: THREE.DoubleSide })
   );
-  skirt.position.y = -5; scene.add(skirt);
+  skirt.position.y = -6; scene.add(skirt);
 
   const rope = new THREE.Mesh(
     new THREE.TorusGeometry(FIELD_R - 3, 0.6, 12, 140),
@@ -100,6 +103,17 @@ try {
     new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
   );
   circle30.rotation.x = -Math.PI / 2; circle30.position.y = 0.4; scene.add(circle30);
+
+  // boundary advertising boards (reads instantly as a real cricket ground)
+  const adTex = makeAdBoardTexture();
+  const adBoards = new THREE.Mesh(
+    new THREE.CylinderGeometry(FIELD_R - 2.5, FIELD_R - 2.5, 3.4, 160, 1, true),
+    new THREE.MeshStandardMaterial({
+      map: adTex, emissiveMap: adTex, emissive: 0xffffff, emissiveIntensity: 0.5,
+      roughness: 0.7, side: THREE.DoubleSide
+    })
+  );
+  adBoards.position.y = 1.7; scene.add(adBoards);
   bump(40);
 
   /* ---------------- Pitch + stumps + batsman-eye crease ---------------- */
@@ -110,8 +124,8 @@ try {
   pitch.position.y = 0.35; pitch.receiveShadow = true; scene.add(pitch);
   const creaseMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
   [-18, -8, 8, 18].forEach((z) => {
-    const c = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.33, 0.25), creaseMat);
-    c.position.set(0, 0.37, z); scene.add(c);
+    const c = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.06, 0.25), creaseMat);
+    c.position.set(0, 0.53, z); scene.add(c);  // sit just above the pitch, no z-fight
   });
   addStumps(0, 19.5); addStumps(0, -19.5);
   bump(48);
@@ -125,7 +139,10 @@ try {
     const yBase = t * 13;
     const ring = new THREE.Mesh(
       new THREE.CylinderGeometry(rOut, rIn, h, 120, 1, true),
-      new THREE.MeshStandardMaterial({ map: seatTex, roughness: 0.95, side: THREE.DoubleSide })
+      new THREE.MeshStandardMaterial({
+        map: seatTex, emissiveMap: seatTex, emissive: 0xffffff, emissiveIntensity: 0.32,
+        roughness: 0.95, side: THREE.DoubleSide
+      })
     );
     ring.position.y = yBase + h / 2; scene.add(ring);
     standTop = yBase + h;
@@ -287,6 +304,7 @@ try {
     ctx.fillStyle = g; ctx.fillRect(0, 0, 1024, 1024);
     const tex = new THREE.CanvasTexture(c);
     tex.anisotropy = 16;
+    tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
   }
   function makeScoreboardTexture() {
@@ -318,30 +336,62 @@ try {
     }
   }
   function makeStandTexture() {
-    // a packed-stadium seating look: muted seats with a sprinkling of
-    // "spectators" — reads as a full crowd from a distance, stays clean
-    const c = document.createElement("canvas"); c.width = 512; c.height = 256;
+    // a genuinely packed crowd: rows of little spectators (head + shoulders)
+    // in varied skin tones & bright clothing — reads as a real full stadium
+    const c = document.createElement("canvas"); c.width = 1024; c.height = 512;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#0c1526"; ctx.fillRect(0, 0, 512, 256);
-    const seats = ["#22385c", "#28466f", "#2f5280", "#39618f"];
-    const people = ["#d7dbe4", "#c85b5b", "#e0b354", "#5aa0d8", "#e8e8ee", "#b7627f"];
-    const cols = 90, rows = 40;
-    const cw = 512 / cols, ch = 256 / rows;
+    ctx.fillStyle = "#0a1120"; ctx.fillRect(0, 0, 1024, 512);
+    const skin = ["#f0c9a0", "#e8b98f", "#d29b6e", "#b87a4d", "#8a5a3a", "#c98a5e"];
+    const shirts = ["#e5484d", "#3b82f6", "#f5c518", "#ffffff", "#22c55e", "#a855f7",
+                    "#ff7a1a", "#e5e7eb", "#0ea5e9", "#ec4899", "#14b8a6", "#f97316"];
+    const rows = 30, rh = 512 / rows;
     for (let r = 0; r < rows; r++) {
-      for (let cc = 0; cc < cols; cc++) {
-        const isPerson = Math.random() < 0.55;
-        const pal = isPerson ? people : seats;
-        ctx.fillStyle = pal[(Math.random() * pal.length) | 0];
-        const x = cc * cw + ((r % 2) ? cw * 0.4 : 0);
-        ctx.fillRect(x, r * ch, cw - 0.6, ch - 0.6);
+      const y = r * rh;
+      // step/riser shadow for depth
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.fillRect(0, y + rh * 0.9, 1024, rh * 0.12);
+      const count = 130, step = 1024 / count;
+      for (let i = 0; i < count; i++) {
+        const x = i * step + ((r % 2) ? step * 0.5 : 0) + (Math.random() - 0.5) * step * 0.3;
+        // body / shoulders
+        ctx.fillStyle = shirts[(Math.random() * shirts.length) | 0];
+        const bw = step * 1.05, bh = rh * 0.62;
+        ctx.fillRect(x - bw / 2, y + rh * 0.36, bw, bh);
+        // head
+        ctx.fillStyle = skin[(Math.random() * skin.length) | 0];
+        ctx.beginPath();
+        ctx.arc(x, y + rh * 0.3, Math.min(bw, rh) * 0.3, 0, Math.PI * 2);
+        ctx.fill();
       }
-      // faint step shadow every few rows for depth
-      if (r % 5 === 0) { ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(0, r * ch, 512, 1.5); }
     }
     const tex = new THREE.CanvasTexture(c);
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(46, 2.4);
+    tex.repeat.set(22, 2);
     tex.anisotropy = 8;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+  function makeAdBoardTexture() {
+    // colourful sponsor hoardings around the boundary
+    const c = document.createElement("canvas"); c.width = 1024; c.height = 128;
+    const ctx = c.getContext("2d");
+    const brands = [
+      ["#0a2540", "#ffffff", "VK SPORTS"], ["#e5484d", "#ffffff", "AJMER T10"],
+      ["#136f3b", "#ffffff", "SIXER"], ["#f5c518", "#0a0a0a", "CHAMPIONS"],
+      ["#1d4ed8", "#ffffff", "PLAY BOLD"], ["#111827", "#22c55e", "NDPL"],
+      ["#7c3aed", "#ffffff", "LIVE"], ["#b91c1c", "#ffe08a", "BOUNDARY"]
+    ];
+    const bw = 1024 / 8;
+    for (let i = 0; i < 8; i++) {
+      const [bg, fg, txt] = brands[i % brands.length];
+      ctx.fillStyle = bg; ctx.fillRect(i * bw, 0, bw, 128);
+      ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(i * bw, 0, bw, 8);
+      ctx.fillStyle = fg; ctx.font = "bold 34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(txt, i * bw + bw / 2, 68);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping; tex.repeat.set(6, 1); tex.anisotropy = 8;
+    tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
   }
   function makeStars(count, spread) {
