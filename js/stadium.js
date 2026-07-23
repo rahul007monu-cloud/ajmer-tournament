@@ -152,53 +152,62 @@ try {
   board.lookAt(0, 8, 0);
   scene.add(board);
 
-  /* ---------------- Floodlights + volumetric beams ---------------- */
-  const flColor = 0xfff2cc;
-  const lightPanels = [];
+  /* ---------------- Floodlight towers (4 realistic pole lights) ---------------- */
+  const flColor = 0xfff6e2;
   [[1,1],[-1,1],[1,-1],[-1,-1]].forEach(([sx, sz]) => {
-    const dist = (FIELD_R + 40) * 0.74;
+    const dist = (FIELD_R + 38) * 0.8;
     const x = sx * dist, z = sz * dist;
-    const poleTop = standTop + 42;
+    const poleTop = standTop + 48;
     const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    // face the light rig toward the middle of the ground
+    g.rotation.y = Math.atan2(-x, -z);
+
+    // tapered steel pole
     const pole = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.2, 2.2, poleTop, 12),
-      new THREE.MeshStandardMaterial({ color: 0x20293c, roughness: 0.6, metalness: 0.4 })
+      new THREE.CylinderGeometry(1.5, 2.8, poleTop, 16),
+      new THREE.MeshStandardMaterial({ color: 0x9aa6b8, roughness: 0.45, metalness: 0.65 })
     );
     pole.position.y = poleTop / 2; pole.castShadow = true; g.add(pole);
-    const rig = new THREE.Mesh(new THREE.BoxGeometry(26, 14, 3),
-      new THREE.MeshStandardMaterial({ color: 0x0c1526, roughness: 0.7 }));
-    rig.position.y = poleTop; rig.lookAt(0, 6, 0); g.add(rig);
-    const panelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: flColor, emissiveIntensity: 2.8 });
-    for (let ix = -1; ix <= 1; ix++) for (let iy = -1; iy <= 1; iy++) {
-      const lamp = new THREE.Mesh(new THREE.CircleGeometry(2.9, 16), panelMat);
-      lamp.position.set(ix * 7.5, poleTop + iy * 3.8, 0); lamp.lookAt(0, 6, 0);
-      const dir = new THREE.Vector3(0, 6, 0).sub(lamp.position).normalize();
-      lamp.position.add(dir.multiplyScalar(1.8)); g.add(lamp); lightPanels.push(lamp);
+
+    // dark light housing that tilts down toward the field
+    const dHoriz = Math.hypot(x, z);
+    const housing = new THREE.Group();
+    housing.position.y = poleTop;
+    housing.rotation.x = Math.atan2(poleTop, dHoriz); // tilt face down toward centre
+    const backPlate = new THREE.Mesh(
+      new THREE.BoxGeometry(34, 22, 2.2),
+      new THREE.MeshStandardMaterial({ color: 0x121a29, roughness: 0.6, metalness: 0.3 })
+    );
+    housing.add(backPlate);
+
+    // bright lamp grid (looks like a real floodlight array)
+    const lampMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: flColor, emissiveIntensity: 3.4 });
+    const cols = 6, rows = 4, gapX = 5.3, gapY = 4.9;
+    for (let cx = 0; cx < cols; cx++) for (let cy = 0; cy < rows; cy++) {
+      const lamp = new THREE.Mesh(new THREE.CircleGeometry(2.15, 20), lampMat);
+      lamp.position.set((cx - (cols - 1) / 2) * gapX, (cy - (rows - 1) / 2) * gapY, 1.3);
+      housing.add(lamp);
     }
+    g.add(housing);
+
+    // soft glow behind the rig
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: makeGlowTexture(), color: flColor, transparent: true, opacity: 0.7,
+      map: makeGlowTexture(), color: flColor, transparent: true, opacity: 0.45,
       depthWrite: false, blending: THREE.AdditiveBlending
     }));
-    halo.scale.set(60, 60, 1); halo.position.set(0, poleTop, 2); g.add(halo);
+    halo.scale.set(72, 48, 1); halo.position.set(0, poleTop, 0); g.add(halo);
 
-    // volumetric beam cone
-    const from = new THREE.Vector3(x, poleTop, z), to = new THREE.Vector3(0, 0, 0);
-    const beamLen = from.distanceTo(to) * 1.02;
-    const beam = new THREE.Mesh(
-      new THREE.ConeGeometry(70, beamLen, 32, 1, true),
-      new THREE.MeshBasicMaterial({ color: flColor, transparent: true, opacity: 0.06,
-        side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
-    );
-    beam.position.copy(from.clone().lerp(to, 0.5));
-    beam.lookAt(to); beam.rotateX(Math.PI / 2);
-    scene.add(beam);
-
-    const spot = new THREE.SpotLight(flColor, 420, 520, Math.PI / 5.5, 0.5, 1.1);
-    spot.position.set(x, poleTop, z); spot.target.position.set(0, 0, 0);
-    spot.castShadow = true; spot.shadow.mapSize.set(1024, 1024);
+    // soft, even light on the field (no harsh streaks)
+    const spot = new THREE.SpotLight(flColor, 150, 700, Math.PI / 4.2, 1.0, 0.8);
+    spot.position.set(x, poleTop, z);
+    spot.target.position.set(0, 0, 0);
+    spot.castShadow = true;
+    spot.shadow.mapSize.set(1024, 1024);
+    spot.shadow.bias = -0.0004;
     scene.add(spot); scene.add(spot.target);
 
-    g.position.set(x, 0, z); scene.add(g);
+    scene.add(g);
   });
   bump(74);
 
@@ -291,15 +300,17 @@ try {
   /* ================= builders ================= */
   function makeFieldTexture() {
     const c = document.createElement("canvas"); c.width = c.height = 1024;
-    const ctx = c.getContext("2d"); const cx = 512, cy = 512, stripes = 30;
+    const ctx = c.getContext("2d");
+    // straight parallel mowing stripes (like a real outfield)
+    const stripes = 16, w = 1024 / stripes;
     for (let i = 0; i < stripes; i++) {
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, 512, (i / stripes) * Math.PI * 2, ((i + 1) / stripes) * Math.PI * 2);
-      ctx.closePath(); ctx.fillStyle = i % 2 ? "#249b48" : "#2bb056"; ctx.fill();
+      ctx.fillStyle = i % 2 ? "#2a9e4d" : "#34b45c";
+      ctx.fillRect(i * w, 0, Math.ceil(w) + 1, 1024);
     }
-    for (let r = 60; r < 512; r += 84) {
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255,255,255,0.04)"; ctx.lineWidth = 26; ctx.stroke();
+    // subtle mow seams
+    ctx.strokeStyle = "rgba(0,0,0,0.05)"; ctx.lineWidth = 2;
+    for (let i = 0; i <= stripes; i++) {
+      ctx.beginPath(); ctx.moveTo(i * w, 0); ctx.lineTo(i * w, 1024); ctx.stroke();
     }
     const tex = new THREE.CanvasTexture(c); tex.anisotropy = 8; return tex;
   }
