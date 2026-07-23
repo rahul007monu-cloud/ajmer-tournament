@@ -32,10 +32,9 @@ try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.35;
+  renderer.toneMappingExposure = 1.12;
   bump(22);
 
   /* ---------------- Scene ---------------- */
@@ -70,19 +69,18 @@ try {
   );
   scene.add(sky);
 
-  /* ---------------- Lights (bright, vivid) ---------------- */
-  scene.add(new THREE.HemisphereLight(0xbfe0ff, 0x123a24, 1.1));
-  scene.add(new THREE.AmbientLight(0x557a9a, 0.6));
-  const moon = new THREE.DirectionalLight(0xcfe4ff, 0.7);
-  moon.position.set(-160, 260, 120); scene.add(moon);
-  const fieldFill = new THREE.PointLight(0xa9ffcf, 0.8, 600); fieldFill.position.set(0, 40, 0); scene.add(fieldFill);
+  /* ---------------- Lights (even, clean — no hotspots on grass) ---------------- */
+  scene.add(new THREE.HemisphereLight(0xdfeaff, 0x1c4a30, 1.35));
+  scene.add(new THREE.AmbientLight(0x8fb0cf, 0.55));
+  const moon = new THREE.DirectionalLight(0xeaf2ff, 0.9);
+  moon.position.set(-140, 300, 160); scene.add(moon);
   bump(30);
 
   /* ---------------- Field (vivid grass) ---------------- */
   const FIELD_R = 100;
   const field = new THREE.Mesh(
     new THREE.CircleGeometry(FIELD_R, 120),
-    new THREE.MeshStandardMaterial({ map: makeFieldTexture(), roughness: 0.9 })
+    new THREE.MeshStandardMaterial({ map: makeFieldTexture(), roughness: 1, metalness: 0 })
   );
   field.rotation.x = -Math.PI / 2; field.receiveShadow = true; scene.add(field);
 
@@ -118,26 +116,26 @@ try {
   addStumps(0, 19.5); addStumps(0, -19.5);
   bump(48);
 
-  /* ---------------- Stands (tall towering bowl) ---------------- */
+  /* ---------------- Stands (packed seating bowl) ---------------- */
   const standInner = FIELD_R + 3, tiers = 4;
+  const seatTex = makeStandTexture();
   let standTop = 0;
   for (let t = 0; t < tiers; t++) {
     const rIn = standInner + t * 14, rOut = rIn + 13, h = 16 + t * 6;
     const yBase = t * 13;
     const ring = new THREE.Mesh(
-      new THREE.CylinderGeometry(rOut, rIn, h, 100, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0x162542, roughness: 0.85, side: THREE.DoubleSide })
+      new THREE.CylinderGeometry(rOut, rIn, h, 120, 1, true),
+      new THREE.MeshStandardMaterial({ map: seatTex, roughness: 0.95, side: THREE.DoubleSide })
     );
-    ring.position.y = yBase + h / 2; ring.castShadow = true; ring.receiveShadow = true; scene.add(ring);
+    ring.position.y = yBase + h / 2; scene.add(ring);
     standTop = yBase + h;
   }
   // roof lip
   const roof = new THREE.Mesh(
-    new THREE.CylinderGeometry(standInner + tiers * 14 + 10, standInner + tiers * 14 + 2, 4, 100, 1, true),
+    new THREE.CylinderGeometry(standInner + tiers * 14 + 10, standInner + tiers * 14 + 2, 4, 120, 1, true),
     new THREE.MeshStandardMaterial({ color: 0x0c1830, roughness: 0.7, side: THREE.DoubleSide })
   );
   roof.position.y = standTop + 2; scene.add(roof);
-  scene.add(makeCrowd(standInner + 3, tiers));
   bump(60);
 
   /* ---------------- Big scoreboard screen ---------------- */
@@ -198,22 +196,12 @@ try {
     }));
     halo.scale.set(72, 48, 1); halo.position.set(0, poleTop, 0); g.add(halo);
 
-    // soft, even light on the field (no harsh streaks)
-    const spot = new THREE.SpotLight(flColor, 150, 700, Math.PI / 4.2, 1.0, 0.8);
-    spot.position.set(x, poleTop, z);
-    spot.target.position.set(0, 0, 0);
-    spot.castShadow = true;
-    spot.shadow.mapSize.set(1024, 1024);
-    spot.shadow.bias = -0.0004;
-    scene.add(spot); scene.add(spot.target);
-
     scene.add(g);
   });
   bump(74);
 
-  /* ---------------- Stars + floating dust (in the light) ---------------- */
-  const stars = makeStars(1400, 1300); scene.add(stars);
-  const dust = makeDust(900); scene.add(dust);
+  /* ---------------- Stars ---------------- */
+  const stars = makeStars(1100, 1300); scene.add(stars);
   bump(84);
 
   /* ---------------- Camera path — LOW, inside the ground ---------------- */
@@ -283,13 +271,6 @@ try {
     camera.lookAt(tmpL);
 
     stars.rotation.y = t * 0.005;
-    dust.rotation.y = t * 0.03;
-    const dp = dust.geometry.attributes.position;
-    for (let i = 1; i < dp.count * 3; i += 3) {
-      dp.array[i] += 0.06;
-      if (dp.array[i] > 120) dp.array[i] = 1;
-    }
-    dp.needsUpdate = true;
 
     renderer.render(scene, camera);
   }
@@ -301,18 +282,17 @@ try {
   function makeFieldTexture() {
     const c = document.createElement("canvas"); c.width = c.height = 1024;
     const ctx = c.getContext("2d");
-    // straight parallel mowing stripes (like a real outfield)
-    const stripes = 16, w = 1024 / stripes;
+    // clean grass with very-low-contrast mowing stripes (no shimmer/streak)
+    const stripes = 14, w = 1024 / stripes;
     for (let i = 0; i < stripes; i++) {
-      ctx.fillStyle = i % 2 ? "#2a9e4d" : "#34b45c";
-      ctx.fillRect(i * w, 0, Math.ceil(w) + 1, 1024);
+      ctx.fillStyle = i % 2 ? "#2f9a51" : "#33a257";
+      ctx.fillRect(Math.floor(i * w), 0, Math.ceil(w) + 1, 1024);
     }
-    // subtle mow seams
-    ctx.strokeStyle = "rgba(0,0,0,0.05)"; ctx.lineWidth = 2;
-    for (let i = 0; i <= stripes; i++) {
-      ctx.beginPath(); ctx.moveTo(i * w, 0); ctx.lineTo(i * w, 1024); ctx.stroke();
-    }
-    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 8; return tex;
+    const tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = 16;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.generateMipmaps = true;
+    return tex;
   }
   function makeScoreboardTexture() {
     const c = document.createElement("canvas"); c.width = 512; c.height = 256;
@@ -342,29 +322,32 @@ try {
       s.position.set(x + i * 0.55, 1.7, z); s.castShadow = true; scene.add(s);
     }
   }
-  function makeCrowd(radius, tiers) {
-    const count = 8000;
-    const mesh = new THREE.InstancedMesh(
-      new THREE.BoxGeometry(1.2, 1.2, 1.2),
-      new THREE.MeshStandardMaterial({ roughness: 0.9 }), count
-    );
-    const d = new THREE.Object3D();
-    const palette = [0xff5a5a, 0x5ad1ff, 0xffd15a, 0xffffff, 0x9b8cff, 0x5aff9b, 0xff8cc6, 0xff9f43];
-    let i = 0;
-    for (let t = 0; t < tiers && i < count; t++) {
-      const r = radius + t * 14 + 5, yBase = t * 13, h = 16 + t * 6;
-      const per = Math.floor(count / tiers);
-      for (let k = 0; k < per && i < count; k++) {
-        const a = (k / per) * Math.PI * 2 + Math.random() * 0.02, rr = r + (Math.random() - 0.5) * 9;
-        d.position.set(Math.cos(a) * rr, yBase + Math.random() * h, Math.sin(a) * rr);
-        const s = 0.7 + Math.random() * 0.6; d.scale.set(s, s, s); d.rotation.y = a; d.updateMatrix();
-        mesh.setMatrixAt(i, d.matrix);
-        mesh.setColorAt(i, new THREE.Color(palette[(Math.random() * palette.length) | 0])); i++;
+  function makeStandTexture() {
+    // a packed-stadium seating look: muted seats with a sprinkling of
+    // "spectators" — reads as a full crowd from a distance, stays clean
+    const c = document.createElement("canvas"); c.width = 512; c.height = 256;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#0c1526"; ctx.fillRect(0, 0, 512, 256);
+    const seats = ["#22385c", "#28466f", "#2f5280", "#39618f"];
+    const people = ["#d7dbe4", "#c85b5b", "#e0b354", "#5aa0d8", "#e8e8ee", "#b7627f"];
+    const cols = 90, rows = 40;
+    const cw = 512 / cols, ch = 256 / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let cc = 0; cc < cols; cc++) {
+        const isPerson = Math.random() < 0.55;
+        const pal = isPerson ? people : seats;
+        ctx.fillStyle = pal[(Math.random() * pal.length) | 0];
+        const x = cc * cw + ((r % 2) ? cw * 0.4 : 0);
+        ctx.fillRect(x, r * ch, cw - 0.6, ch - 0.6);
       }
+      // faint step shadow every few rows for depth
+      if (r % 5 === 0) { ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(0, r * ch, 512, 1.5); }
     }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    return mesh;
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(46, 2.4);
+    tex.anisotropy = 8;
+    return tex;
   }
   function makeStars(count, spread) {
     const geo = new THREE.BufferGeometry(); const pos = new Float32Array(count * 3);
@@ -377,18 +360,6 @@ try {
     }
     geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     return new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xcfe0ff, size: 2, transparent: true, opacity: 0.85, sizeAttenuation: true }));
-  }
-  function makeDust(count) {
-    const geo = new THREE.BufferGeometry(); const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const r = Math.random() * 120, a = Math.random() * Math.PI * 2;
-      pos[i*3] = Math.cos(a) * r; pos[i*3+1] = Math.random() * 110 + 1; pos[i*3+2] = Math.sin(a) * r;
-    }
-    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    return new THREE.Points(geo, new THREE.PointsMaterial({
-      map: makeGlowTexture(), color: 0xdff7e6, size: 2.6, transparent: true,
-      opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true
-    }));
   }
 } catch (err) {
   fail(err && err.message ? err.message : String(err));
