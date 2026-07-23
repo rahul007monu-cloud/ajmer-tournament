@@ -254,23 +254,19 @@ try {
     smoothP += (scrollP - smoothP) * 0.06;
     samplePath(smoothP);
 
-    // strong, alive floating motion (breathe + sway) so it always feels weightless
-    const bob = Math.sin(t * 0.8) * 1.5 + Math.sin(t * 0.31) * 0.9;
-    const swayX = Math.sin(t * 0.24) * 3.2;
-    const swayZ = Math.cos(t * 0.19) * 2.4;
-
+    // STEADY camera — moves only with scroll. A barely-there vertical
+    // float + gentle mouse parallax; NO spinning / swaying "chakri".
+    const bob = Math.sin(t * 0.5) * 0.4;
     mouse.x += (mouse.tx - mouse.x) * 0.05;
     mouse.y += (mouse.ty - mouse.y) * 0.05;
 
     camera.position.set(
-      vP.x + swayX + mouse.x * 7,
-      Math.max(3, vP.y + bob - mouse.y * 4),
-      vP.z + swayZ
+      vP.x + mouse.x * 2.5,
+      Math.max(3, vP.y + bob - mouse.y * 1.5),
+      vP.z
     );
-    tmpL.set(vL.x + mouse.x * 4 + Math.sin(t * 0.2) * 2, vL.y + Math.sin(t * 0.5) * 0.6, vL.z);
+    tmpL.copy(vL);
     camera.lookAt(tmpL);
-
-    stars.rotation.y = t * 0.005;
 
     renderer.render(scene, camera);
   }
@@ -280,18 +276,17 @@ try {
 
   /* ================= builders ================= */
   function makeFieldTexture() {
+    // SOLID, smooth grass — a soft radial gradient for depth, NO stripes,
+    // so there is zero starburst / "chakri" at grazing camera angles
     const c = document.createElement("canvas"); c.width = c.height = 1024;
     const ctx = c.getContext("2d");
-    // clean grass with very-low-contrast mowing stripes (no shimmer/streak)
-    const stripes = 14, w = 1024 / stripes;
-    for (let i = 0; i < stripes; i++) {
-      ctx.fillStyle = i % 2 ? "#2f9a51" : "#33a257";
-      ctx.fillRect(Math.floor(i * w), 0, Math.ceil(w) + 1, 1024);
-    }
+    const g = ctx.createRadialGradient(512, 512, 40, 512, 512, 512);
+    g.addColorStop(0, "#37ac5d");
+    g.addColorStop(0.7, "#31a054");
+    g.addColorStop(1, "#2b8f4b");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 1024, 1024);
     const tex = new THREE.CanvasTexture(c);
     tex.anisotropy = 16;
-    tex.minFilter = THREE.LinearMipmapLinearFilter;
-    tex.generateMipmaps = true;
     return tex;
   }
   function makeScoreboardTexture() {
