@@ -250,7 +250,6 @@ try {
 
   /* ---------------- Animate ---------------- */
   const clock = new THREE.Clock();
-  let flick = 0;
   function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
@@ -273,10 +272,6 @@ try {
     );
     tmpL.set(vL.x + mouse.x * 4 + Math.sin(t * 0.2) * 2, vL.y + Math.sin(t * 0.5) * 0.6, vL.z);
     camera.lookAt(tmpL);
-
-    flick += 0.05;
-    const fInt = 2.7 + Math.sin(flick) * 0.2 + Math.sin(flick * 3.1) * 0.07;
-    lightPanels.forEach((p) => (p.material.emissiveIntensity = fInt));
 
     stars.rotation.y = t * 0.005;
     dust.rotation.y = t * 0.03;
