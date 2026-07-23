@@ -128,6 +128,60 @@
     });
   }
 
+  /* ---------- Inject matchups (team vs team) ---------- */
+  const mgrid = $("#matchupGrid");
+  if (mgrid && window.VK && window.VK.fixtures) {
+    const initials = (name) =>
+      name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+    mgrid.innerHTML = window.VK.fixtures
+      .map(
+        (m) => `
+      <article class="matchup reveal">
+        <div class="matchup-head">
+          <span class="matchup-tour">${m.tournament} • ${m.date}</span>
+          <span class="matchup-stage">${m.stage}</span>
+        </div>
+        <div class="matchup-body">
+          <div class="mteam a">
+            <div class="mbadge">${initials(m.teamA)}</div>
+            <div class="mname">${m.teamA}</div>
+            <div class="mscore">${m.scoreA}</div>
+          </div>
+          <div class="mvs">VS</div>
+          <div class="mteam b">
+            <div class="mbadge">${initials(m.teamB)}</div>
+            <div class="mname">${m.teamB}</div>
+            <div class="mscore">${m.scoreB}</div>
+          </div>
+        </div>
+        <div class="matchup-foot">
+          <span class="matchup-result">🏆 ${m.result}</span>
+          <span class="matchup-mom">MoM: <b>${m.mom}</b></span>
+        </div>
+      </article>`
+      )
+      .join("");
+    $$(".matchup.reveal", mgrid).forEach((el) => {
+      const io = new IntersectionObserver(
+        (ents) => ents.forEach((e) => e.isIntersecting && (el.classList.add("in"), io.unobserve(el))),
+        { threshold: 0.1 }
+      );
+      io.observe(el);
+    });
+  }
+
+  /* ---------- Scroll progress bar ---------- */
+  const scrollBar = $("#scrollBar");
+  if (scrollBar) {
+    const updateBar = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? (window.scrollY / max) * 100 : 0;
+      scrollBar.style.width = p + "%";
+    };
+    window.addEventListener("scroll", updateBar, { passive: true });
+    updateBar();
+  }
+
   /* ---------- Hero title GSAP intro (after loader) ---------- */
   window.VK = window.VK || {};
   window.VK.playHeroIntro = function () {

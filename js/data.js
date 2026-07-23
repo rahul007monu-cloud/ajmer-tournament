@@ -94,6 +94,76 @@ window.VK.gallery = [
   { icon: "⚡", label: "Super over" }
 ];
 
+// ---- Past tournament results (team vs team matchups) ----
+window.VK.fixtures = [
+  {
+    tournament: "Ajmer Premier League 2025",
+    date: "Aug 2025",
+    stage: "FINAL",
+    teamA: "Ajmer Royals",
+    teamB: "Dargah Warriors",
+    scoreA: "142/4",
+    scoreB: "138/7",
+    result: "Ajmer Royals won by 4 runs",
+    mom: "Rahul Sharma (68*)"
+  },
+  {
+    tournament: "Diwali Dhamaka T10 2025",
+    date: "Oct 2025",
+    stage: "FINAL",
+    teamA: "Ana Sagar Titans",
+    teamB: "Kishangarh Kings",
+    scoreA: "121/6",
+    scoreB: "124/3",
+    result: "Kishangarh Kings won by 7 wickets",
+    mom: "Imran Khan (54*)"
+  },
+  {
+    tournament: "Monsoon Knockout Cup 2025",
+    date: "Sep 2025",
+    stage: "SEMI-FINAL",
+    teamA: "Pushkar Panthers",
+    teamB: "Beawar Blasters",
+    scoreA: "156/5",
+    scoreB: "151/9",
+    result: "Pushkar Panthers won by 5 runs",
+    mom: "Deepak Meena (3/22)"
+  },
+  {
+    tournament: "Corporate Smash 2025",
+    date: "Sep 2025",
+    stage: "FINAL",
+    teamA: "Vaishali Vipers",
+    teamB: "Civil Lines Chargers",
+    scoreA: "88/3",
+    scoreB: "84/8",
+    result: "Vaishali Vipers won by 7 wickets",
+    mom: "Arjun Rathore (41)"
+  },
+  {
+    tournament: "Ajmer Premier League 2025",
+    date: "Aug 2025",
+    stage: "SEMI-FINAL",
+    teamA: "Nasirabad Knights",
+    teamB: "Taragarh Tigers",
+    scoreA: "167/6",
+    scoreB: "159/8",
+    result: "Nasirabad Knights won by 8 runs",
+    mom: "Suresh Gurjar (72)"
+  },
+  {
+    tournament: "Foy Sagar Cup 2025",
+    date: "Jul 2025",
+    stage: "FINAL",
+    teamA: "Foy Sagar Falcons",
+    teamB: "Adarsh Nagar Avengers",
+    scoreA: "134/7",
+    scoreB: "130/9",
+    result: "Foy Sagar Falcons won by 4 runs",
+    mom: "Vikas Jain (2/18)"
+  }
+];
+
 /* =========================================================
    PAYMENT CONFIG (Razorpay ready)
    ---------------------------------------------------------

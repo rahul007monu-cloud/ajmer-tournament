@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏏</text></svg>" />
 
-  <!-- Three.js via ES module CDN -->
   <script type="importmap">
   {
     "imports": {
@@ -21,7 +20,6 @@
     }
   }
   </script>
-  <!-- GSAP for cinematic animations -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 </head>
@@ -32,8 +30,15 @@
     <div class="loader-ball"></div>
     <div class="loader-text">VK SPORTS AJMER</div>
     <div class="loader-bar"><span id="loader-progress"></span></div>
-    <div class="loader-sub">Preparing the stadium…</div>
+    <div class="loader-sub">Entering the stadium…</div>
   </div>
+
+  <!-- FIXED 3D WORLD (stays behind everything, scroll flies the camera) -->
+  <canvas id="stadium-canvas"></canvas>
+  <div class="world-overlay"></div>
+
+  <!-- scroll progress bar -->
+  <div class="scroll-progress"><span id="scrollBar"></span></div>
 
   <!-- Navigation -->
   <header class="nav" id="nav">
@@ -42,10 +47,10 @@
       <span class="nav-logo-text">VK SPORTS<small>AJMER</small></span>
     </a>
     <nav class="nav-links" id="navLinks">
-      <a href="#home">Home</a>
       <a href="#about">About</a>
       <a href="#stats">Legacy</a>
       <a href="#tournaments">Tournaments</a>
+      <a href="#matchups">Matchups</a>
       <a href="#gallery">Gallery</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -56,134 +61,143 @@
     <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
   </header>
 
-  <!-- HERO with 3D stadium -->
-  <section id="home" class="hero">
-    <canvas id="stadium-canvas"></canvas>
-    <div class="hero-vignette"></div>
-    <div class="hero-content">
-      <div class="hero-badge">🏆 Ajmer's Premier Cricket League</div>
-      <h1 class="hero-title">
-        <span class="line" data-text="WHERE LOCAL">WHERE LOCAL</span>
-        <span class="line accent" data-text="LEGENDS RISE">LEGENDS RISE</span>
-      </h1>
-      <p class="hero-sub">Step into the arena. Register your team, join a squad, and battle it out under the floodlights of Ajmer's most electrifying cricket tournaments.</p>
-      <div class="hero-cta">
-        <a href="register-team.html" class="btn btn-primary btn-lg">Register Your Team →</a>
-        <a href="register-player.html" class="btn btn-outline btn-lg">Register as Player</a>
-      </div>
-      <div class="hero-scroll">
-        <span>Scroll to explore</span>
-        <div class="mouse"><span></span></div>
-      </div>
-    </div>
-  </section>
+  <!-- SCROLL CONTENT (transparent, floats over the 3D world) -->
+  <main class="scene">
 
-  <!-- Marquee -->
-  <div class="marquee">
-    <div class="marquee-track">
-      <span>🏏 TENNIS BALL CRICKET</span><span>•</span><span>💥 DAY &amp; NIGHT MATCHES</span><span>•</span>
-      <span>🏆 CASH PRIZES</span><span>•</span><span>⚡ KNOCKOUT FORMAT</span><span>•</span>
-      <span>🔥 LIVE STREAMING</span><span>•</span><span>🎯 PRO UMPIRES</span><span>•</span>
-      <span>🏏 TENNIS BALL CRICKET</span><span>•</span><span>💥 DAY &amp; NIGHT MATCHES</span><span>•</span>
-      <span>🏆 CASH PRIZES</span><span>•</span><span>⚡ KNOCKOUT FORMAT</span><span>•</span>
-      <span>🔥 LIVE STREAMING</span><span>•</span><span>🎯 PRO UMPIRES</span><span>•</span>
-    </div>
-  </div>
-
-  <!-- ABOUT -->
-  <section id="about" class="section about">
-    <div class="container about-grid">
-      <div class="about-visual reveal">
-        <div class="about-card-3d">
-          <div class="about-pitch"></div>
-          <div class="about-glow"></div>
-          <span class="about-emoji">🏟️</span>
+    <!-- STAGE 1 : BRAND INTRO -->
+    <section id="home" class="stage stage-hero">
+      <div class="hero-center">
+        <div class="hero-badge">🏆 Ajmer's Premier Cricket League</div>
+        <h1 class="hero-title">
+          <span class="line" data-text="VK SPORTS">VK SPORTS</span>
+          <span class="line accent" data-text="AJMER">AJMER</span>
+        </h1>
+        <p class="hero-sub">Where local legends rise under the floodlights. Float into the arena and discover Ajmer's most electrifying cricket tournaments.</p>
+        <div class="hero-cta">
+          <a href="register-team.html" class="btn btn-primary btn-lg">Register Your Team →</a>
+          <a href="register-player.html" class="btn btn-outline btn-lg">Register as Player</a>
         </div>
       </div>
-      <div class="about-text">
-        <span class="eyebrow reveal">About VK Sports</span>
-        <h2 class="section-title reveal">The Heartbeat of <span class="accent">Ajmer Cricket</span></h2>
-        <p class="reveal">VK Sports Ajmer is where the city's passion for cricket comes alive. For years we've organised fiercely competitive local tournaments that bring together the best teams and rising talent from across Ajmer and nearby towns.</p>
-        <p class="reveal">From nail-biting last-over finishes to floodlit night matches, every tournament is run with professional umpires, transparent scheduling, and real cash prizes. Whether you captain a full squad or want to join one as an individual player — this is your arena.</p>
-        <ul class="about-list reveal">
-          <li>✅ Transparent online registration &amp; secure payments</li>
-          <li>✅ Professional umpiring &amp; live scoring</li>
-          <li>✅ Team &amp; individual player entries</li>
-          <li>✅ Cash prizes, trophies &amp; man-of-the-series awards</li>
-        </ul>
-        <a href="#tournaments" class="btn btn-primary reveal">View Upcoming Tournaments</a>
+      <div class="hero-scroll">
+        <span>Scroll to enter the ground</span>
+        <div class="mouse"><span></span></div>
+      </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="marquee">
+      <div class="marquee-track">
+        <span>🏏 TENNIS BALL CRICKET</span><span>•</span><span>💥 DAY &amp; NIGHT MATCHES</span><span>•</span>
+        <span>🏆 CASH PRIZES</span><span>•</span><span>⚡ KNOCKOUT FORMAT</span><span>•</span>
+        <span>🔥 LIVE STREAMING</span><span>•</span><span>🎯 PRO UMPIRES</span><span>•</span>
+        <span>🏏 TENNIS BALL CRICKET</span><span>•</span><span>💥 DAY &amp; NIGHT MATCHES</span><span>•</span>
+        <span>🏆 CASH PRIZES</span><span>•</span><span>⚡ KNOCKOUT FORMAT</span><span>•</span>
+        <span>🔥 LIVE STREAMING</span><span>•</span><span>🎯 PRO UMPIRES</span><span>•</span>
       </div>
     </div>
-  </section>
 
-  <!-- STATS / LEGACY -->
-  <section id="stats" class="section stats">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow">Our Legacy</span>
-        <h2 class="section-title">Numbers That <span class="accent">Speak</span></h2>
+    <!-- STAGE 2 : ABOUT -->
+    <section id="about" class="stage">
+      <div class="container">
+        <div class="glass reveal">
+          <span class="eyebrow">About VK Sports</span>
+          <h2 class="section-title">The Heartbeat of <span class="accent">Ajmer Cricket</span></h2>
+          <p>VK Sports Ajmer is where the city's passion for cricket comes alive. For years we've organised fiercely competitive local tournaments that bring together the best teams and rising talent from across Ajmer and nearby towns.</p>
+          <p>From nail-biting last-over finishes to floodlit night matches, every tournament is run with professional umpires, transparent scheduling and real cash prizes. Whether you captain a full squad or want to join one as an individual player — this is your arena.</p>
+          <ul class="about-list">
+            <li>✅ Transparent online registration &amp; secure payments</li>
+            <li>✅ Professional umpiring &amp; live scoring</li>
+            <li>✅ Team &amp; individual player entries</li>
+            <li>✅ Cash prizes, trophies &amp; man-of-the-series awards</li>
+          </ul>
+          <a href="#tournaments" class="btn btn-primary">View Upcoming Tournaments</a>
+        </div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card reveal"><div class="stat-num" data-count="48">0</div><div class="stat-label">Tournaments Hosted</div></div>
-        <div class="stat-card reveal"><div class="stat-num" data-count="620">0</div><div class="stat-label">Teams Participated</div></div>
-        <div class="stat-card reveal"><div class="stat-num" data-count="7400">0</div><div class="stat-label">Players Registered</div></div>
-        <div class="stat-card reveal"><div class="stat-num" data-count="25" data-suffix="L+">0</div><div class="stat-label">Prize Money Awarded (₹)</div></div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- TOURNAMENTS -->
-  <section id="tournaments" class="section tournaments">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow">Compete Now</span>
-        <h2 class="section-title">Upcoming <span class="accent">Tournaments</span></h2>
-        <p class="section-desc">Pick your battleground. Slots fill fast — lock your entry today.</p>
+    <!-- STAGE 3 : LEGACY / STATS -->
+    <section id="stats" class="stage">
+      <div class="container">
+        <div class="section-head center reveal">
+          <span class="eyebrow">Our Legacy</span>
+          <h2 class="section-title">Numbers That <span class="accent">Speak</span></h2>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card glass reveal"><div class="stat-num" data-count="48">0</div><div class="stat-label">Tournaments Hosted</div></div>
+          <div class="stat-card glass reveal"><div class="stat-num" data-count="620">0</div><div class="stat-label">Teams Participated</div></div>
+          <div class="stat-card glass reveal"><div class="stat-num" data-count="7400">0</div><div class="stat-label">Players Registered</div></div>
+          <div class="stat-card glass reveal"><div class="stat-num" data-count="25" data-suffix="L+">0</div><div class="stat-label">Prize Money (₹)</div></div>
+        </div>
       </div>
-      <div class="tournament-grid" id="tournamentGrid"><!-- injected by JS --></div>
-    </div>
-  </section>
+    </section>
 
-  <!-- HOW IT WORKS -->
-  <section class="section how">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow">Simple &amp; Fast</span>
-        <h2 class="section-title">How To <span class="accent">Join</span></h2>
+    <!-- STAGE 4 : TOURNAMENTS -->
+    <section id="tournaments" class="stage">
+      <div class="container">
+        <div class="section-head center reveal">
+          <span class="eyebrow">Compete Now</span>
+          <h2 class="section-title">Upcoming <span class="accent">Tournaments</span></h2>
+          <p class="section-desc">Pick your battleground. Slots fill fast — lock your entry today.</p>
+        </div>
+        <div class="tournament-grid" id="tournamentGrid"></div>
       </div>
-      <div class="how-grid">
-        <div class="how-step reveal"><div class="how-num">01</div><h3>Choose Entry</h3><p>Register a full team or sign up as an individual player looking for a squad.</p></div>
-        <div class="how-step reveal"><div class="how-num">02</div><h3>Fill Details</h3><p>Add your squad / player details, contact info and pick a tournament.</p></div>
-        <div class="how-step reveal"><div class="how-num">03</div><h3>Pay Securely</h3><p>Complete the entry fee online via Razorpay / UPI — instant confirmation.</p></div>
-        <div class="how-step reveal"><div class="how-num">04</div><h3>Play &amp; Win</h3><p>Get your fixtures, hit the ground and chase glory &amp; cash prizes.</p></div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- GALLERY -->
-  <section id="gallery" class="section gallery">
-    <div class="container">
-      <div class="section-head center">
-        <span class="eyebrow">Moments</span>
-        <h2 class="section-title">Under The <span class="accent">Lights</span></h2>
+    <!-- STAGE 5 : MATCHUPS (team vs team) -->
+    <section id="matchups" class="stage">
+      <div class="container">
+        <div class="section-head center reveal">
+          <span class="eyebrow">Hall of Battles</span>
+          <h2 class="section-title">Team vs <span class="accent">Team</span></h2>
+          <p class="section-desc">Legendary clashes from our past tournaments — the rivalries that lit up Ajmer.</p>
+        </div>
+        <div class="matchup-grid" id="matchupGrid"></div>
       </div>
-      <div class="gallery-grid" id="galleryGrid"><!-- injected by JS --></div>
-    </div>
-  </section>
+    </section>
 
-  <!-- CTA -->
-  <section class="cta-band">
-    <div class="cta-inner reveal">
-      <h2>Ready to take the field?</h2>
-      <p>Registrations are open. Grab your slot before it's gone.</p>
-      <div class="hero-cta">
-        <a href="register-team.html" class="btn btn-primary btn-lg">Register Team</a>
-        <a href="register-player.html" class="btn btn-outline btn-lg">Register Player</a>
+    <!-- STAGE 6 : HOW -->
+    <section class="stage">
+      <div class="container">
+        <div class="section-head center reveal">
+          <span class="eyebrow">Simple &amp; Fast</span>
+          <h2 class="section-title">How To <span class="accent">Join</span></h2>
+        </div>
+        <div class="how-grid">
+          <div class="how-step glass reveal"><div class="how-num">01</div><h3>Choose Entry</h3><p>Register a full team or sign up as an individual player looking for a squad.</p></div>
+          <div class="how-step glass reveal"><div class="how-num">02</div><h3>Fill Details</h3><p>Add your squad / player details, contact info and pick a tournament.</p></div>
+          <div class="how-step glass reveal"><div class="how-num">03</div><h3>Pay Securely</h3><p>Complete the entry fee online via Razorpay / UPI — instant confirmation.</p></div>
+          <div class="how-step glass reveal"><div class="how-num">04</div><h3>Play &amp; Win</h3><p>Get your fixtures, hit the ground and chase glory &amp; cash prizes.</p></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- CONTACT / FOOTER -->
+    <!-- STAGE 7 : GALLERY -->
+    <section id="gallery" class="stage">
+      <div class="container">
+        <div class="section-head center reveal">
+          <span class="eyebrow">Moments</span>
+          <h2 class="section-title">Under The <span class="accent">Lights</span></h2>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </div>
+    </section>
+
+    <!-- STAGE 8 : CTA -->
+    <section class="stage">
+      <div class="container">
+        <div class="glass cta-glass reveal">
+          <h2>Ready to take the field?</h2>
+          <p>Registrations are open. Grab your slot before it's gone.</p>
+          <div class="hero-cta">
+            <a href="register-team.html" class="btn btn-primary btn-lg">Register Team</a>
+            <a href="register-player.html" class="btn btn-outline btn-lg">Register Player</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
   <footer id="contact" class="footer">
     <div class="container footer-grid">
       <div>
