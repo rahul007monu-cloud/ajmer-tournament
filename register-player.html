@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Registration — VK Sports Ajmer</title>
+  <meta name="description" content="Register as an individual cricket player for VK Sports Ajmer tournaments. Pick a team or join as a free agent." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏏</text></svg>" />
+</head>
+<body>
+  <header class="nav scrolled" id="nav">
+    <a href="index.html" class="nav-logo">
+      <span class="nav-logo-mark">🏏</span>
+      <span class="nav-logo-text">VK SPORTS<small>AJMER</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html#about">About</a>
+      <a href="index.html#tournaments">Tournaments</a>
+      <a href="index.html#gallery">Gallery</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <div class="nav-actions">
+      <a href="register-team.html" class="btn btn-ghost">Team</a>
+      <a href="register-player.html" class="btn btn-primary">Player</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </header>
+
+  <section class="reg-hero">
+    <div class="container">
+      <span class="eyebrow">Player Entry</span>
+      <h1>Register As A <span class="accent">Player</span></h1>
+      <p>Don't have a full team? No problem. Sign up as an individual, choose the team you want to play for, or join as a free agent and we'll place you in a squad.</p>
+      <div class="reg-switch">
+        <a href="register-team.html">🛡️ Team Registration</a>
+        <a href="register-player.html" class="active">🏏 Player Registration</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="reg-wrap">
+    <div class="container reg-layout">
+      <!-- FORM -->
+      <form class="form-card" id="regForm" data-mode="player" novalidate>
+        <h2>Player Details</h2>
+        <p class="form-hint">Fields marked <span class="accent">*</span> are required.</p>
+
+        <div class="form-section-title">Tournament &amp; Team</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Select Tournament <span class="req">*</span></label>
+            <select data-tournaments data-field="tournament" required>
+              <option value="">Loading…</option>
+            </select>
+            <span class="error">Please select a tournament.</span>
+          </div>
+          <div class="field">
+            <label>Team You Want To Play For <span class="req">*</span></label>
+            <select data-teams data-field="team" required>
+              <option value="">Loading…</option>
+            </select>
+            <span class="error">Please choose a team or free agent.</span>
+          </div>
+        </div>
+
+        <div class="form-section-title">Personal Information</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" data-field="playerName" placeholder="Your full name" required />
+            <span class="error">Enter your name.</span>
+          </div>
+          <div class="field">
+            <label>Age <span class="req">*</span></label>
+            <input type="number" data-field="age" placeholder="e.g. 24" min="10" max="70" required />
+            <span class="error">Enter your age.</span>
+          </div>
+          <div class="field">
+            <label>Mobile Number <span class="req">*</span></label>
+            <input type="tel" data-field="phone" placeholder="10-digit mobile" required />
+            <span class="error">Enter a valid mobile number.</span>
+          </div>
+          <div class="field">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" data-field="email" placeholder="you@example.com" required />
+            <span class="error">Enter a valid email.</span>
+          </div>
+          <div class="field">
+            <label>City / Area <span class="req">*</span></label>
+            <input type="text" data-field="city" placeholder="e.g. Adarsh Nagar, Ajmer" required />
+            <span class="error">Enter your city/area.</span>
+          </div>
+          <div class="field">
+            <label>Jersey Number (optional)</label>
+            <input type="number" data-field="jerseyNo" placeholder="e.g. 18" min="0" max="999" />
+          </div>
+        </div>
+
+        <div class="form-section-title">Cricket Profile</div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Playing Role <span class="req">*</span></label>
+            <select data-field="role" required>
+              <option value="">Select role…</option>
+              <option>Batter</option>
+              <option>Bowler</option>
+              <option>All-rounder</option>
+              <option>Wicket-keeper</option>
+            </select>
+            <span class="error">Select your role.</span>
+          </div>
+          <div class="field">
+            <label>Batting Style</label>
+            <select data-field="batting">
+              <option value="">Select…</option>
+              <option>Right-hand bat</option>
+              <option>Left-hand bat</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Bowling Style</label>
+            <select data-field="bowling">
+              <option value="">Select…</option>
+              <option>Right-arm fast</option>
+              <option>Right-arm medium</option>
+              <option>Right-arm off-spin</option>
+              <option>Right-arm leg-spin</option>
+              <option>Left-arm fast</option>
+              <option>Left-arm spin</option>
+              <option>None</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Notable Experience (optional)</label>
+          <textarea data-field="experience" rows="3" placeholder="Clubs played for, tournaments won, best performances…"></textarea>
+        </div>
+
+        <div class="checkbox-line" style="margin-top:14px">
+          <input type="checkbox" id="consent" />
+          <label for="consent">I confirm all details are correct and I accept the tournament rules, code of conduct and the no-refund entry policy.</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn" style="margin-top:22px">
+          Pay Entry Fee &amp; Register →
+        </button>
+      </form>
+
+      <!-- SUMMARY -->
+      <aside class="summary">
+        <h3>🧾 Entry Summary</h3>
+        <div id="summaryRows"></div>
+        <div class="summary-total">
+          <span>Total Payable</span>
+          <b id="summaryTotal" data-amount="0">₹0</b>
+        </div>
+        <div class="pay-badges">
+          <span>UPI</span><span>Cards</span><span>Net Banking</span><span>Wallets</span>
+        </div>
+        <div class="secure-note">🔒 Secured by Razorpay • 256-bit encryption</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- SUCCESS MODAL -->
+  <div class="modal" id="successModal">
+    <div class="modal-card">
+      <div class="modal-check">✓</div>
+      <h2 id="modalTitle">You're In! 🎉</h2>
+      <p id="modalMsg">You are registered.</p>
+      <div class="modal-id" id="modalId">Ref: —</div>
+      <p style="font-size:13px;color:var(--muted)">A confirmation with next steps will be shared on your registered mobile &amp; email.</p>
+      <button class="btn btn-primary btn-lg btn-block" id="modalClose" style="margin-top:18px">Done</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-bottom container" style="border:none">
+      <span>© <span id="year"></span> VK Sports Ajmer. All rights reserved.</span>
+      <a href="index.html" style="color:var(--green)">← Back to home</a>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/register.js"></script>
+</body>
+</html>
